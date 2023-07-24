@@ -37,7 +37,9 @@ func (u *unorderedDeck) Size() int {
 }
 
 func (u *unorderedDeck) RevealAll() []Card {
-	return u.list
+	out := make([]Card, len(u.list))
+	copy(out, u.list)
+	return out
 }
 
 func (u *unorderedDeck) RandomTrash() (Card, error) {

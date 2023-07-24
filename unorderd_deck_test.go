@@ -148,6 +148,20 @@ func Test_unorderedDeck_RevealAll(t *testing.T) {
 			}
 		})
 	}
+	t.Run("test for side effect", func(t *testing.T) {
+		u := NewUnorderedDeck(makeMockCards(4), makeMockRand(0)).(*unorderedDeck)
+		want := makeMockCards(4)
+		got := u.RevealAll()
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("RevealAll() = %v, want %v", got, want)
+		}
+		got[0] = mockCard(100)
+		gotCard := u.list[0]
+		wantCard := mockCard(0)
+		if !reflect.DeepEqual(gotCard, wantCard) {
+			t.Errorf("RevealAll() = %v, want %v", gotCard, wantCard)
+		}
+	})
 }
 
 func Test_unorderedDeck_Size(t *testing.T) {
