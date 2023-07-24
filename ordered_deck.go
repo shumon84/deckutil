@@ -164,8 +164,13 @@ func (o *orderedDeck) AddTop(cards ...Card) {
 }
 
 func (o *orderedDeck) AddBottom(cards ...Card) {
-	//TODO implement me
-	panic("implement me")
+	for i, card := range cards {
+		o.dict[card.GetID()] = cardDictValue{
+			index: len(o.list) + i,
+			card:  card,
+		}
+	}
+	o.list = append(o.list, cards...)
 }
 
 func (o *orderedDeck) Insert(cards ...Card) {
