@@ -216,3 +216,37 @@ func Test_orderedDeck_DrawN(t *testing.T) {
 		})
 	}
 }
+
+func Test_orderedDeck_Draw(t *testing.T) {
+	tests := []struct {
+		name    string
+		o       *orderedDeck
+		want    Card
+		wantErr bool
+	}{
+		{
+			name:    "simple test",
+			o:       NewOrderedDeck(makeMockCards(4), makeMockRand(0)).(*orderedDeck),
+			want:    mockCard(0),
+			wantErr: false,
+		},
+		{
+			name:    "test for empty deck",
+			o:       NewOrderedDeck([]Card{}, makeMockRand(0)).(*orderedDeck),
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.o.Draw()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Draw() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Draw() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

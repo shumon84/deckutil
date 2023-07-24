@@ -86,8 +86,11 @@ func (o *orderedDeck) Shuffle() {
 }
 
 func (o *orderedDeck) Draw() (Card, error) {
-	//TODO implement me
-	panic("implement me")
+	cards, err := o.DrawN(1)
+	if err != nil {
+		return nil, err
+	}
+	return cards[0], nil
 }
 
 func (o *orderedDeck) DrawN(n int) ([]Card, error) {
