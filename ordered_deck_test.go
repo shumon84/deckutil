@@ -45,6 +45,21 @@ func Test_orderedDeck_RevealAllWithoutShuffle(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("test for side effect", func(t *testing.T) {
+		o := NewOrderedDeck(makeMockCards(4), makeMockRand(0)).(*orderedDeck)
+		want := makeMockCards(4)
+		got := o.RevealAllWithoutShuffle()
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("RevealAll() = %v, want %v", got, want)
+		}
+		got[0] = mockCard(100)
+		gotCard := o.list[0]
+		wantCard := mockCard(0)
+		if !reflect.DeepEqual(gotCard, wantCard) {
+			t.Errorf("RevealAll() = %v, want %v", gotCard, wantCard)
+		}
+	})
 }
 
 func Test_orderedDeck_Shuffle(t *testing.T) {

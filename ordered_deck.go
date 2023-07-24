@@ -45,7 +45,9 @@ func (o *orderedDeck) Size() int {
 }
 
 func (o *orderedDeck) RevealAllWithoutShuffle() []Card {
-	return o.list
+	out := make([]Card, len(o.list))
+	copy(out, o.list)
+	return out
 }
 
 func (o *orderedDeck) RevealAllWithShuffle() []Card {
