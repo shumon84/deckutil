@@ -524,3 +524,50 @@ func Test_orderedDeck_AddBottom(t *testing.T) {
 		})
 	}
 }
+
+func Test_orderedDeck_Insert(t *testing.T) {
+	tests := []struct {
+		name     string
+		o        *orderedDeck
+		arg      []Card
+		wantDeck *orderedDeck
+	}{
+		{
+			name: "simple test",
+			o:    NewOrderedDeck(makeMockCards(4), makeMockRand(0, 3, 1, 4, 2, 5)).(*orderedDeck),
+			arg: []Card{
+				mockCard(4),
+				mockCard(5),
+			},
+			wantDeck: NewOrderedDeck([]Card{
+				mockCard(0),
+				mockCard(2),
+				mockCard(4),
+				mockCard(1),
+				mockCard(3),
+				mockCard(5),
+			}, makeMockRand()).(*orderedDeck),
+		},
+		{
+			name: "test for empty deck",
+			o:    NewOrderedDeck([]Card{}, makeMockRand(2, 1, 3, 0)).(*orderedDeck),
+			arg:  makeMockCards(4),
+			wantDeck: NewOrderedDeck([]Card{
+				mockCard(3),
+				mockCard(1),
+				mockCard(0),
+				mockCard(2),
+			}, makeMockRand()).(*orderedDeck),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.o.Insert(tt.arg...)
+			tt.o.random = tt.wantDeck.random
+			gotDeck := tt.o
+			if !reflect.DeepEqual(gotDeck, tt.wantDeck) {
+				t.Errorf("Insert() = %v, want %v", gotDeck, tt.wantDeck)
+			}
+		})
+	}
+}

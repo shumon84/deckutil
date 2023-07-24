@@ -174,6 +174,7 @@ func (o *orderedDeck) AddBottom(cards ...Card) {
 }
 
 func (o *orderedDeck) Insert(cards ...Card) {
-	//TODO implement me
-	panic("implement me")
+	o.list = append(o.list, cards...)
+	o.Shuffle()
+	return
 }
