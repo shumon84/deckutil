@@ -66,7 +66,7 @@ func (u *unorderedDeck) TrashN(cards ...Card) ([]Card, error) {
 	for _, card := range cards {
 		cardInfo, ok := u.dict[card.GetID()]
 		if ok {
-			foundCards = append(foundCards, card)
+			foundCards = append(foundCards, cardInfo.card)
 			cardInfos = append(cardInfos, cardInfo)
 		} else {
 			notFoundCards = append(notFoundCards, card)

@@ -129,8 +129,28 @@ func (o *orderedDeck) RevealTop(n int) ([]Card, error) {
 }
 
 func (o *orderedDeck) Search(card Card) (Card, error) {
-	//TODO implement me
-	panic("implement me")
+	cardInfo, ok := o.dict[card.GetID()]
+	if !ok {
+		return nil, NewErrNotFound(card)
+	}
+	delete(o.dict, card.GetID())
+
+	newList := make([]Card, 0)
+	if 0 < cardInfo.index {
+		newList = o.list[:cardInfo.index]
+	}
+	if cardInfo.index+1 < len(o.list) {
+		newList = append(newList, o.list[cardInfo.index+1:]...)
+	}
+	o.list = newList
+
+	for i, c := range newList[cardInfo.index:] {
+		o.dict[c.GetID()] = cardDictValue{
+			index: cardInfo.index + i,
+			card:  c,
+		}
+	}
+	return cardInfo.card, nil
 }
 
 func (o *orderedDeck) AddTop(cards ...Card) {

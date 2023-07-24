@@ -383,3 +383,61 @@ func Test_orderedDeck_RevealTop(t *testing.T) {
 		}
 	})
 }
+
+func Test_orderedDeck_Search(t *testing.T) {
+	tests := []struct {
+		name     string
+		o        *orderedDeck
+		arg      Card
+		want     Card
+		wantErr  bool
+		wantDeck *orderedDeck
+	}{
+		{
+			name:    "simple test",
+			o:       NewOrderedDeck(makeMockCards(4), makeMockRand(0)).(*orderedDeck),
+			arg:     mockCard(1),
+			want:    mockCard(1),
+			wantErr: false,
+			wantDeck: NewOrderedDeck([]Card{
+				mockCard(0),
+				mockCard(2),
+				mockCard(3),
+			}, makeMockRand(0)).(*orderedDeck),
+		},
+		{
+			name:     "test for empty deck",
+			o:        NewOrderedDeck([]Card{}, makeMockRand(0)).(*orderedDeck),
+			arg:      mockCard(0),
+			want:     nil,
+			wantErr:  true,
+			wantDeck: NewOrderedDeck([]Card{}, makeMockRand(0)).(*orderedDeck),
+		},
+		{
+			name:     "test for no exists card in the deck",
+			o:        NewOrderedDeck(makeMockCards(4), makeMockRand(0)).(*orderedDeck),
+			arg:      mockCard(10),
+			want:     nil,
+			wantErr:  true,
+			wantDeck: NewOrderedDeck(makeMockCards(4), makeMockRand(0)).(*orderedDeck),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.o.Search(tt.arg)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Search() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Search() got = %v, want %v", got, tt.want)
+			}
+			tt.o.random = tt.wantDeck.random
+			gotDeck := tt.o
+			if !reflect.DeepEqual(gotDeck, tt.wantDeck) {
+				t.Errorf("Search() = %v, want %v", gotDeck, tt.wantDeck)
+			}
+
+		})
+	}
+}
