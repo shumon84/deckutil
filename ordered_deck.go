@@ -42,8 +42,7 @@ func (o *orderedDeck) Size() int {
 }
 
 func (o *orderedDeck) RevealAllWithoutShuffle() []Card {
-	//TODO implement me
-	panic("implement me")
+	return o.list
 }
 
 func (o *orderedDeck) RevealAllWithShuffle() []Card {
