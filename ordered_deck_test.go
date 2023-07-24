@@ -162,3 +162,57 @@ func Test_orderedDeck_RevealAllWithShuffle(t *testing.T) {
 		}
 	})
 }
+
+func Test_orderedDeck_DrawN(t *testing.T) {
+	tests := []struct {
+		name    string
+		o       *orderedDeck
+		arg     int
+		want    []Card
+		wantErr bool
+	}{
+		{
+			name:    "test for draw one",
+			o:       NewOrderedDeck(makeMockCards(4), makeMockRand(0)).(*orderedDeck),
+			arg:     1,
+			want:    []Card{mockCard(0)},
+			wantErr: false,
+		},
+		{
+			name: "test for draw two",
+			o:    NewOrderedDeck(makeMockCards(4), makeMockRand(0)).(*orderedDeck),
+			arg:  2,
+			want: []Card{
+				mockCard(0),
+				mockCard(1),
+			},
+			wantErr: false,
+		},
+		{
+			name:    "test for empty deck",
+			o:       NewOrderedDeck([]Card{}, makeMockRand(0)).(*orderedDeck),
+			arg:     1,
+			want:    []Card{},
+			wantErr: true,
+		},
+		{
+			name:    "test for not enough deck",
+			o:       NewOrderedDeck(makeMockCards(2), makeMockRand(0)).(*orderedDeck),
+			arg:     3,
+			want:    makeMockCards(2),
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.o.DrawN(tt.arg)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DrawN() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("DrawN() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

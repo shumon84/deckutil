@@ -91,8 +91,18 @@ func (o *orderedDeck) Draw() (Card, error) {
 }
 
 func (o *orderedDeck) DrawN(n int) ([]Card, error) {
-	//TODO implement me
-	panic("implement me")
+	if n >= len(o.list) {
+		list := o.list
+		o.list = []Card{}
+		o.dict = map[int]cardDictValue{}
+		return list, NewErrNoMoreCards()
+	}
+	list := o.list[:n]
+	o.list = o.list[n:]
+	for _, card := range list {
+		delete(o.dict, card.GetID())
+	}
+	return list, nil
 }
 
 func (o *orderedDeck) RevealTop(n int) ([]Card, error) {
