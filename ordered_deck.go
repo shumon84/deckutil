@@ -50,9 +50,10 @@ func (o *orderedDeck) RevealAllWithoutShuffle() []Card {
 	return out
 }
 
-func (o *orderedDeck) RevealAllWithShuffle() []Card {
-	//TODO implement me
-	panic("implement me")
+func (o *orderedDeck) RevealAllWithShuffle() (out []Card) {
+	out = o.list
+	o.Shuffle()
+	return out
 }
 
 func (o *orderedDeck) Shuffle() {

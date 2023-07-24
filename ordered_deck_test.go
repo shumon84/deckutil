@@ -110,3 +110,55 @@ func Test_orderedDeck_Shuffle(t *testing.T) {
 		})
 	}
 }
+
+func Test_orderedDeck_RevealAllWithShuffle(t *testing.T) {
+	tests := []struct {
+		name     string
+		o        *orderedDeck
+		wantOut  []Card
+		wantList []Card
+	}{
+		{
+			name: "simple test",
+			o:    NewOrderedDeck(makeMockCards(4), makeMockRand(30, 20, 10, 0)).(*orderedDeck),
+			wantOut: []Card{
+				mockCard(0),
+				mockCard(1),
+				mockCard(2),
+				mockCard(3),
+			},
+			wantList: []Card{
+				mockCard(3),
+				mockCard(2),
+				mockCard(1),
+				mockCard(0),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if gotOut := tt.o.RevealAllWithShuffle(); !reflect.DeepEqual(gotOut, tt.wantOut) {
+				t.Errorf("RevealAllWithShuffle() = %v, want %v", gotOut, tt.wantOut)
+			}
+			gotList := tt.o.list
+			if !reflect.DeepEqual(gotList, tt.wantList) {
+				t.Errorf("RevealAllWitShuffle() = %v, want %v", gotList, tt.wantList)
+			}
+		})
+	}
+
+	t.Run("test for side effect", func(t *testing.T) {
+		o := NewOrderedDeck(makeMockCards(4), makeMockRand(30, 20, 10, 0)).(*orderedDeck)
+		want := makeMockCards(4)
+		got := o.RevealAllWithShuffle()
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("RevealAllWithShuffle() = %v, want %v", got, want)
+		}
+		got[0] = mockCard(100)
+		gotCard := o.list[0]
+		wantCard := mockCard(3)
+		if !reflect.DeepEqual(gotCard, wantCard) {
+			t.Errorf("RevealAllWithShuffle() = %v, want %v", gotCard, wantCard)
+		}
+	})
+}
