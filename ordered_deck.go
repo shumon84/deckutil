@@ -154,8 +154,13 @@ func (o *orderedDeck) Search(card Card) (Card, error) {
 }
 
 func (o *orderedDeck) AddTop(cards ...Card) {
-	//TODO implement me
-	panic("implement me")
+	o.list = append(cards, o.list...)
+	for i, card := range o.list {
+		o.dict[card.GetID()] = cardDictValue{
+			index: i,
+			card:  card,
+		}
+	}
 }
 
 func (o *orderedDeck) AddBottom(cards ...Card) {
