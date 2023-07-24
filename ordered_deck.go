@@ -38,8 +38,7 @@ func NewOrderedDeck(cards []Card, random rand.Source) OrderedDeck {
 }
 
 func (o *orderedDeck) Size() int {
-	//TODO implement me
-	panic("implement me")
+	return len(o.list)
 }
 
 func (o *orderedDeck) RevealAllWithoutShuffle() []Card {
