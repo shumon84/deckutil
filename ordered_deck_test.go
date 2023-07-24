@@ -46,3 +46,52 @@ func Test_orderedDeck_RevealAllWithoutShuffle(t *testing.T) {
 		})
 	}
 }
+
+func Test_orderedDeck_Shuffle(t *testing.T) {
+	tests := []struct {
+		name string
+		o    *orderedDeck
+		want *orderedDeck
+	}{
+		{
+			name: "simple test",
+			o:    NewOrderedDeck(makeMockCards(4), makeMockRand(30, 20, 10, 0)).(*orderedDeck),
+			want: &orderedDeck{
+				dict: map[int]cardDictValue{
+					3: {
+						index: 0,
+						card:  mockCard(3),
+					},
+					2: {
+						index: 1,
+						card:  mockCard(2),
+					},
+					1: {
+						index: 2,
+						card:  mockCard(1),
+					},
+					0: {
+						index: 3,
+						card:  mockCard(0),
+					},
+				},
+				list: []Card{
+					mockCard(3),
+					mockCard(2),
+					mockCard(1),
+					mockCard(0),
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.o.Shuffle()
+			tt.o.random = nil
+			got := tt.o
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Shuffle() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

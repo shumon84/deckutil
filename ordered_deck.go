@@ -1,6 +1,9 @@
 package deckutil
 
-import "math/rand"
+import (
+	"math/rand"
+	"sort"
+)
 
 type OrderedDeck interface {
 	Size() int
@@ -51,8 +54,32 @@ func (o *orderedDeck) RevealAllWithShuffle() []Card {
 }
 
 func (o *orderedDeck) Shuffle() {
-	//TODO implement me
-	panic("implement me")
+	type tuple struct {
+		r int64
+		c Card
+	}
+	shuffle := make([]tuple, len(o.list))
+	for i, card := range o.list {
+		shuffle[i] = tuple{
+			o.random.Int63(),
+			card,
+		}
+	}
+	sort.Slice(shuffle, func(i, j int) bool {
+		return shuffle[i].r < shuffle[j].r
+	})
+
+	cards := make([]Card, len(o.list))
+	dict := make(cardDict, len(cards))
+	for i, t := range shuffle {
+		cards[i] = t.c
+		dict[t.c.GetID()] = cardDictValue{
+			index: i,
+			card:  t.c,
+		}
+	}
+	o.list = cards
+	o.dict = dict
 }
 
 func (o *orderedDeck) Draw() (Card, error) {
