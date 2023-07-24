@@ -1,6 +1,7 @@
 package deckutil
 
 import (
+	"math"
 	"math/rand"
 	"sort"
 )
@@ -105,12 +106,26 @@ func (o *orderedDeck) DrawN(n int) ([]Card, error) {
 	for _, card := range list {
 		delete(o.dict, card.GetID())
 	}
+	for i, card := range o.list {
+		o.dict[card.GetID()] = cardDictValue{
+			index: i,
+			card:  card,
+		}
+	}
 	return list, nil
 }
 
 func (o *orderedDeck) RevealTop(n int) ([]Card, error) {
-	//TODO implement me
-	panic("implement me")
+	sep := int(math.Min(
+		float64(n),
+		float64(len(o.list)),
+	))
+	list := make([]Card, sep)
+	copy(list, o.list)
+	if n > len(o.list) {
+		return list, NewErrNoMoreCards()
+	}
+	return list, nil
 }
 
 func (o *orderedDeck) Search(card Card) (Card, error) {
