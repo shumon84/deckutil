@@ -16,7 +16,7 @@ type OrderedDeck[T Card] interface {
 	RevealTop(n int) ([]T, error)
 	Search(card T) (T, error)
 	AddTop(cards ...T) error
-	AddBottom(cards ...T)
+	AddBottom(cards ...T) error
 	Insert(cards ...T)
 }
 
@@ -154,8 +154,11 @@ func (o *orderedDeck[T]) AddTop(cards ...T) error {
 	return nil
 }
 
-// TODO: カードが重複している時にエラーを返すようにする
-func (o *orderedDeck[T]) AddBottom(cards ...T) {
+func (o *orderedDeck[T]) AddBottom(cards ...T) error {
+	if err := o.exists(cards...); err != nil {
+		return err
+	}
+
 	for i, card := range cards {
 		o.dict[card.GetID()] = cardDictValue[T]{
 			index: len(o.list) + i,
@@ -163,6 +166,7 @@ func (o *orderedDeck[T]) AddBottom(cards ...T) {
 		}
 	}
 	o.list = append(o.list, cards...)
+	return nil
 }
 
 // TODO: カードが重複している時にエラーを返すようにする
