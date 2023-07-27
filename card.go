@@ -7,9 +7,9 @@ type Card interface {
 	fmt.Stringer
 }
 
-type cardDict map[int]cardDictValue
+type cardDict[T Card] map[int]cardDictValue[T]
 
-type cardDictValue struct {
+type cardDictValue[T Card] struct {
 	index int
-	card  Card
+	card  T
 }

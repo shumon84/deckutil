@@ -1,6 +1,7 @@
 package deckutil
 
 import (
+	"math/rand"
 	"reflect"
 	"testing"
 )
@@ -11,13 +12,13 @@ func Test_unorderedDeck_Insert(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		u    *unorderedDeck
+		u    *unorderedDeck[Card]
 		args args
 		want []Card
 	}{
 		{
 			name: "test for single insert",
-			u:    NewUnorderedDeck(makeMockCards(4), makeMockRand(0)).(*unorderedDeck),
+			u:    NewUnorderedDeck[Card](makeMockCards(4), makeMockRand(0)).(*unorderedDeck[Card]),
 			args: args{
 				cards: []Card{
 					mockCard(0),
@@ -27,7 +28,7 @@ func Test_unorderedDeck_Insert(t *testing.T) {
 		},
 		{
 			name: "test for bulk insert",
-			u:    NewUnorderedDeck(makeMockCards(4), makeMockRand(0)).(*unorderedDeck),
+			u:    NewUnorderedDeck[Card](makeMockCards(4), makeMockRand(0)).(*unorderedDeck[Card]),
 			args: args{
 				cards: makeMockCards(2),
 			},
@@ -35,7 +36,7 @@ func Test_unorderedDeck_Insert(t *testing.T) {
 		},
 		{
 			name: "test for insert to empty deck",
-			u:    NewUnorderedDeck([]Card{}, makeMockRand(0)).(*unorderedDeck),
+			u:    NewUnorderedDeck[Card]([]Card{}, makeMockRand(0)).(*unorderedDeck[Card]),
 			args: args{
 				cards: []Card{mockCard(0)},
 			},
@@ -55,14 +56,14 @@ func Test_unorderedDeck_Insert(t *testing.T) {
 func Test_unorderedDeck_RandomTrash(t *testing.T) {
 	tests := []struct {
 		name     string
-		u        *unorderedDeck
+		u        *unorderedDeck[Card]
 		want     Card
 		wantErr  bool
 		wantList []Card
 	}{
 		{
 			name:    "test for case when trashed prefix card",
-			u:       NewUnorderedDeck(makeMockCards(4), makeMockRand(0)).(*unorderedDeck),
+			u:       NewUnorderedDeck[Card](makeMockCards(4), rand.NewSource(3)).(*unorderedDeck[Card]),
 			want:    mockCard(0),
 			wantErr: false,
 			wantList: []Card{
@@ -73,7 +74,7 @@ func Test_unorderedDeck_RandomTrash(t *testing.T) {
 		},
 		{
 			name:    "test for case when trashed suffix card",
-			u:       NewUnorderedDeck(makeMockCards(4), makeMockRand(3)).(*unorderedDeck),
+			u:       NewUnorderedDeck[Card](makeMockCards(4), rand.NewSource(15)).(*unorderedDeck[Card]),
 			want:    mockCard(3),
 			wantErr: false,
 			wantList: []Card{
@@ -84,7 +85,7 @@ func Test_unorderedDeck_RandomTrash(t *testing.T) {
 		},
 		{
 			name:    "test for case when trashed middle card",
-			u:       NewUnorderedDeck(makeMockCards(4), makeMockRand(2)).(*unorderedDeck),
+			u:       NewUnorderedDeck[Card](makeMockCards(4), rand.NewSource(0)).(*unorderedDeck[Card]),
 			want:    mockCard(2),
 			wantErr: false,
 			wantList: []Card{
@@ -95,21 +96,10 @@ func Test_unorderedDeck_RandomTrash(t *testing.T) {
 		},
 		{
 			name:     "test for case when trashed from empty deck",
-			u:        NewUnorderedDeck([]Card{}, makeMockRand(0)).(*unorderedDeck),
+			u:        NewUnorderedDeck[Card]([]Card{}, makeMockRand(0)).(*unorderedDeck[Card]),
 			want:     nil,
 			wantErr:  true,
 			wantList: []Card{},
-		},
-		{
-			name:    "test for case when rand.Source returned too big number",
-			u:       NewUnorderedDeck(makeMockCards(4), makeMockRand(10)).(*unorderedDeck),
-			want:    mockCard(2),
-			wantErr: false,
-			wantList: []Card{
-				mockCard(0),
-				mockCard(1),
-				mockCard(3),
-			},
 		},
 	}
 	for _, tt := range tests {
@@ -132,12 +122,12 @@ func Test_unorderedDeck_RandomTrash(t *testing.T) {
 func Test_unorderedDeck_RevealAll(t *testing.T) {
 	tests := []struct {
 		name string
-		u    *unorderedDeck
+		u    *unorderedDeck[Card]
 		want []Card
 	}{
 		{
 			name: "simple test",
-			u:    NewUnorderedDeck(makeMockCards(4), makeMockRand(0)).(*unorderedDeck),
+			u:    NewUnorderedDeck[Card](makeMockCards(4), makeMockRand(0)).(*unorderedDeck[Card]),
 			want: makeMockCards(4),
 		},
 	}
@@ -149,7 +139,7 @@ func Test_unorderedDeck_RevealAll(t *testing.T) {
 		})
 	}
 	t.Run("test for side effect", func(t *testing.T) {
-		u := NewUnorderedDeck(makeMockCards(4), makeMockRand(0)).(*unorderedDeck)
+		u := NewUnorderedDeck[Card](makeMockCards(4), makeMockRand(0)).(*unorderedDeck[Card])
 		want := makeMockCards(4)
 		got := u.RevealAll()
 		if !reflect.DeepEqual(got, want) {
@@ -167,12 +157,12 @@ func Test_unorderedDeck_RevealAll(t *testing.T) {
 func Test_unorderedDeck_Size(t *testing.T) {
 	tests := []struct {
 		name string
-		u    *unorderedDeck
+		u    *unorderedDeck[Card]
 		want int
 	}{
 		{
 			name: "simple test",
-			u:    NewUnorderedDeck(makeMockCards(4), makeMockRand(0)).(*unorderedDeck),
+			u:    NewUnorderedDeck[Card](makeMockCards(4), makeMockRand(0)).(*unorderedDeck[Card]),
 			want: 4,
 		},
 	}
@@ -188,7 +178,7 @@ func Test_unorderedDeck_Size(t *testing.T) {
 func Test_unorderedDeck_Trash(t *testing.T) {
 	tests := []struct {
 		name     string
-		u        *unorderedDeck
+		u        *unorderedDeck[Card]
 		arg      Card
 		want     Card
 		wantErr  bool
@@ -196,7 +186,7 @@ func Test_unorderedDeck_Trash(t *testing.T) {
 	}{
 		{
 			name:    "test for case when trashed prefix card",
-			u:       NewUnorderedDeck(makeMockCards(4), makeMockRand(0)).(*unorderedDeck),
+			u:       NewUnorderedDeck[Card](makeMockCards(4), makeMockRand(0)).(*unorderedDeck[Card]),
 			arg:     mockCard(0),
 			want:    mockCard(0),
 			wantErr: false,
@@ -208,7 +198,7 @@ func Test_unorderedDeck_Trash(t *testing.T) {
 		},
 		{
 			name:    "test for case when trashed suffix card",
-			u:       NewUnorderedDeck(makeMockCards(4), makeMockRand(0)).(*unorderedDeck),
+			u:       NewUnorderedDeck[Card](makeMockCards(4), makeMockRand(0)).(*unorderedDeck[Card]),
 			arg:     mockCard(3),
 			want:    mockCard(3),
 			wantErr: false,
@@ -220,7 +210,7 @@ func Test_unorderedDeck_Trash(t *testing.T) {
 		},
 		{
 			name:    "test for case when trashed middle card",
-			u:       NewUnorderedDeck(makeMockCards(4), makeMockRand(0)).(*unorderedDeck),
+			u:       NewUnorderedDeck[Card](makeMockCards(4), makeMockRand(0)).(*unorderedDeck[Card]),
 			arg:     mockCard(2),
 			want:    mockCard(2),
 			wantErr: false,
@@ -232,7 +222,7 @@ func Test_unorderedDeck_Trash(t *testing.T) {
 		},
 		{
 			name:     "test for case when trashed from empty deck",
-			u:        NewUnorderedDeck([]Card{}, makeMockRand(0)).(*unorderedDeck),
+			u:        NewUnorderedDeck[Card]([]Card{}, makeMockRand(0)).(*unorderedDeck[Card]),
 			arg:      mockCard(1),
 			want:     nil,
 			wantErr:  true,
@@ -240,7 +230,7 @@ func Test_unorderedDeck_Trash(t *testing.T) {
 		},
 		{
 			name:    "test for case when specified a no exists card in the deck.",
-			u:       NewUnorderedDeck(makeMockCards(4), makeMockRand(0)).(*unorderedDeck),
+			u:       NewUnorderedDeck[Card](makeMockCards(4), makeMockRand(0)).(*unorderedDeck[Card]),
 			arg:     mockCard(10),
 			want:    nil,
 			wantErr: true,
@@ -272,7 +262,7 @@ func Test_unorderedDeck_Trash(t *testing.T) {
 func Test_unorderedDeck_TrashN(t *testing.T) {
 	tests := []struct {
 		name     string
-		u        *unorderedDeck
+		u        *unorderedDeck[Card]
 		arg      []Card
 		want     []Card
 		wantErr  bool
@@ -280,7 +270,7 @@ func Test_unorderedDeck_TrashN(t *testing.T) {
 	}{
 		{
 			name:    "simple trash test",
-			u:       NewUnorderedDeck(makeMockCards(4), makeMockRand(0)).(*unorderedDeck),
+			u:       NewUnorderedDeck[Card](makeMockCards(4), makeMockRand(0)).(*unorderedDeck[Card]),
 			arg:     makeMockCards(2),
 			want:    makeMockCards(2),
 			wantErr: false,
@@ -291,7 +281,7 @@ func Test_unorderedDeck_TrashN(t *testing.T) {
 		},
 		{
 			name: "partial trash test",
-			u:    NewUnorderedDeck(makeMockCards(4), makeMockRand(0)).(*unorderedDeck),
+			u:    NewUnorderedDeck[Card](makeMockCards(4), makeMockRand(0)).(*unorderedDeck[Card]),
 			arg: []Card{
 				mockCard(3),
 				mockCard(4),

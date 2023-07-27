@@ -2,67 +2,67 @@ package deckutil
 
 import "math/rand"
 
-type UnorderedDeck interface {
+type UnorderedDeck[T Card] interface {
 	Size() int
-	RevealAll() []Card
-	RandomTrash() (Card, error)
-	Trash(card Card) (Card, error)
-	TrashN(cards ...Card) ([]Card, error)
-	Insert(cards ...Card)
+	RevealAll() []T
+	RandomTrash() (T, error)
+	Trash(card T) (T, error)
+	TrashN(cards ...T) ([]T, error)
+	Insert(cards ...T)
 }
 
-type unorderedDeck struct {
-	dict   cardDict
-	list   []Card
+type unorderedDeck[T Card] struct {
+	dict   cardDict[T]
+	list   []T
 	random rand.Source
 }
 
-func NewUnorderedDeck(cards []Card, random rand.Source) UnorderedDeck {
-	dict := make(cardDict, len(cards))
+func NewUnorderedDeck[T Card](cards []T, random rand.Source) UnorderedDeck[T] {
+	dict := make(cardDict[T], len(cards))
 	for i, card := range cards {
-		dict[card.GetID()] = cardDictValue{
+		dict[card.GetID()] = cardDictValue[T]{
 			index: i,
 			card:  card,
 		}
 	}
-	return &unorderedDeck{
+	return &unorderedDeck[T]{
 		dict:   dict,
 		list:   cards,
 		random: random,
 	}
 }
 
-func (u *unorderedDeck) Size() int {
+func (u *unorderedDeck[T]) Size() int {
 	return len(u.dict)
 }
 
-func (u *unorderedDeck) RevealAll() []Card {
-	out := make([]Card, len(u.list))
+func (u *unorderedDeck[T]) RevealAll() []T {
+	out := make([]T, len(u.list))
 	copy(out, u.list)
 	return out
 }
 
-func (u *unorderedDeck) RandomTrash() (Card, error) {
+func (u *unorderedDeck[T]) RandomTrash() (x T, _ error) {
 	if len(u.list) == 0 {
-		return nil, NewErrNoMoreCards()
+		return x, NewErrNoMoreCards()
 	}
-	index := int(u.random.Int63()) % len(u.dict)
+	index := rand.New(u.random).Intn(len(u.dict))
 	card := u.list[index]
 	return u.Trash(card)
 }
 
-func (u *unorderedDeck) Trash(card Card) (Card, error) {
+func (u *unorderedDeck[T]) Trash(card T) (x T, _ error) {
 	cards, err := u.TrashN(card)
 	if err != nil {
-		return nil, err
+		return x, err
 	}
 	return cards[0], nil
 }
 
-func (u *unorderedDeck) TrashN(cards ...Card) ([]Card, error) {
-	cardInfos := make([]cardDictValue, 0, len(cards))
+func (u *unorderedDeck[T]) TrashN(cards ...T) ([]T, error) {
+	cardInfos := make([]cardDictValue[T], 0, len(cards))
 	notFoundCards := make([]Card, 0)
-	foundCards := make([]Card, 0, len(cards))
+	foundCards := make([]T, 0, len(cards))
 	for _, card := range cards {
 		cardInfo, ok := u.dict[card.GetID()]
 		if ok {
@@ -78,7 +78,7 @@ func (u *unorderedDeck) TrashN(cards ...Card) ([]Card, error) {
 	for _, cardInfo := range cardInfos {
 		delete(u.dict, cardInfo.card.GetID())
 	}
-	newList := make([]Card, len(u.dict))
+	newList := make([]T, len(u.dict))
 	index := 0
 	for id, cardInfo := range u.dict {
 		newList[index] = cardInfo.card
@@ -90,9 +90,9 @@ func (u *unorderedDeck) TrashN(cards ...Card) ([]Card, error) {
 	return foundCards, nil
 }
 
-func (u *unorderedDeck) Insert(cards ...Card) {
+func (u *unorderedDeck[T]) Insert(cards ...T) {
 	for i, card := range cards {
-		u.dict[card.GetID()] = cardDictValue{
+		u.dict[card.GetID()] = cardDictValue[T]{
 			index: len(u.list) + i,
 			card:  card,
 		}

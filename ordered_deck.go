@@ -3,111 +3,96 @@ package deckutil
 import (
 	"math"
 	"math/rand"
-	"sort"
+	"reflect"
 )
 
-type OrderedDeck interface {
+type OrderedDeck[T Card] interface {
 	Size() int
-	RevealAllWithoutShuffle() []Card
-	RevealAllWithShuffle() []Card
+	RevealAllWithoutShuffle() []T
+	RevealAllWithShuffle() []T
 	Shuffle()
-	Draw() (Card, error)
-	DrawN(n int) ([]Card, error)
-	RevealTop(n int) ([]Card, error)
-	Search(card Card) (Card, error)
-	AddTop(cards ...Card)
-	AddBottom(cards ...Card)
-	Insert(cards ...Card)
+	Draw() (T, error)
+	DrawN(n int) ([]T, error)
+	RevealTop(n int) ([]T, error)
+	Search(card T) (T, error)
+	AddTop(cards ...T)
+	AddBottom(cards ...T)
+	Insert(cards ...T)
 }
 
-type orderedDeck struct {
-	dict   cardDict
-	list   []Card
+type orderedDeck[T Card] struct {
+	dict   cardDict[T]
+	list   []T
 	random rand.Source
 }
 
-func NewOrderedDeck(cards []Card, random rand.Source) OrderedDeck {
-	dict := make(cardDict, len(cards))
+func NewOrderedDeck[T Card](cards []T, random rand.Source) OrderedDeck[T] {
+	dict := make(cardDict[T], len(cards))
 	for i, card := range cards {
-		dict[card.GetID()] = cardDictValue{
+		dict[card.GetID()] = cardDictValue[T]{
 			index: i,
 			card:  card,
 		}
 	}
-	return &orderedDeck{
+	return &orderedDeck[T]{
 		dict:   dict,
 		list:   cards,
 		random: random,
 	}
 }
 
-func (o *orderedDeck) Size() int {
+func (o *orderedDeck[T]) Size() int {
 	return len(o.list)
 }
 
-func (o *orderedDeck) RevealAllWithoutShuffle() []Card {
-	out := make([]Card, len(o.list))
+func (o *orderedDeck[T]) RevealAllWithoutShuffle() []T {
+	out := make([]T, len(o.list))
 	copy(out, o.list)
 	return out
 }
 
-func (o *orderedDeck) RevealAllWithShuffle() (out []Card) {
-	out = o.list
+func (o *orderedDeck[T]) RevealAllWithShuffle() []T {
+	out := o.RevealAllWithoutShuffle()
 	o.Shuffle()
 	return out
 }
 
-func (o *orderedDeck) Shuffle() {
-	type tuple struct {
-		r int64
-		c Card
-	}
-	shuffle := make([]tuple, len(o.list))
+func (o *orderedDeck[T]) Shuffle() {
+	r := rand.New(o.random)
+	r.Shuffle(len(o.list), reflect.Swapper(o.list))
+	dict := make(cardDict[T], len(o.list))
 	for i, card := range o.list {
-		shuffle[i] = tuple{
-			o.random.Int63(),
-			card,
-		}
-	}
-	sort.Slice(shuffle, func(i, j int) bool {
-		return shuffle[i].r < shuffle[j].r
-	})
-
-	cards := make([]Card, len(o.list))
-	dict := make(cardDict, len(cards))
-	for i, t := range shuffle {
-		cards[i] = t.c
-		dict[t.c.GetID()] = cardDictValue{
+		dict[card.GetID()] = cardDictValue[T]{
 			index: i,
-			card:  t.c,
+			card:  card,
 		}
 	}
-	o.list = cards
 	o.dict = dict
 }
 
-func (o *orderedDeck) Draw() (Card, error) {
+func (o *orderedDeck[T]) Draw() (x T, _ error) {
 	cards, err := o.DrawN(1)
 	if err != nil {
-		return nil, err
+		return x, err
 	}
 	return cards[0], nil
 }
 
-func (o *orderedDeck) DrawN(n int) ([]Card, error) {
+func (o *orderedDeck[T]) DrawN(n int) ([]T, error) {
 	if n >= len(o.list) {
 		list := o.list
-		o.list = []Card{}
-		o.dict = map[int]cardDictValue{}
+		o.list = []T{}
+		o.dict = map[int]cardDictValue[T]{}
 		return list, NewErrNoMoreCards()
 	}
-	list := o.list[:n]
+	list := make([]T, n)
+	copy(list, o.list[:n])
 	o.list = o.list[n:]
 	for _, card := range list {
 		delete(o.dict, card.GetID())
 	}
 	for i, card := range o.list {
-		o.dict[card.GetID()] = cardDictValue{
+		o.dict[card.GetID()] = cardDictValue[T]{
 			index: i,
 			card:  card,
 		}
@@ -115,12 +100,12 @@ func (o *orderedDeck) DrawN(n int) ([]Card, error) {
 	return list, nil
 }
 
-func (o *orderedDeck) RevealTop(n int) ([]Card, error) {
+func (o *orderedDeck[T]) RevealTop(n int) ([]T, error) {
 	sep := int(math.Min(
 		float64(n),
 		float64(len(o.list)),
 	))
-	list := make([]Card, sep)
+	list := make([]T, sep)
 	copy(list, o.list)
 	if n > len(o.list) {
 		return list, NewErrNoMoreCards()
@@ -128,14 +113,14 @@ func (o *orderedDeck) RevealTop(n int) ([]Card, error) {
 	return list, nil
 }
 
-func (o *orderedDeck) Search(card Card) (Card, error) {
+func (o *orderedDeck[T]) Search(card T) (x T, _ error) {
 	cardInfo, ok := o.dict[card.GetID()]
 	if !ok {
-		return nil, NewErrNotFound(card)
+		return x, NewErrNotFound(card)
 	}
 	delete(o.dict, card.GetID())
 
-	newList := make([]Card, 0)
+	newList := make([]T, 0)
 	if 0 < cardInfo.index {
 		newList = o.list[:cardInfo.index]
 	}
@@ -145,7 +130,7 @@ func (o *orderedDeck) Search(card Card) (Card, error) {
 	o.list = newList
 
 	for i, c := range newList[cardInfo.index:] {
-		o.dict[c.GetID()] = cardDictValue{
+		o.dict[c.GetID()] = cardDictValue[T]{
 			index: cardInfo.index + i,
 			card:  c,
 		}
@@ -153,19 +138,23 @@ func (o *orderedDeck) Search(card Card) (Card, error) {
 	return cardInfo.card, nil
 }
 
-func (o *orderedDeck) AddTop(cards ...Card) {
-	o.list = append(cards, o.list...)
+// TODO: カードが重複している時にエラーを返すようにする
+func (o *orderedDeck[T]) AddTop(cards ...T) {
+	cardsCopy := make([]T, len(cards))
+	copy(cardsCopy, cards)
+	o.list = append(cardsCopy, o.list...)
 	for i, card := range o.list {
-		o.dict[card.GetID()] = cardDictValue{
+		o.dict[card.GetID()] = cardDictValue[T]{
 			index: i,
 			card:  card,
 		}
 	}
 }
 
-func (o *orderedDeck) AddBottom(cards ...Card) {
+// TODO: カードが重複している時にエラーを返すようにする
+func (o *orderedDeck[T]) AddBottom(cards ...T) {
 	for i, card := range cards {
-		o.dict[card.GetID()] = cardDictValue{
+		o.dict[card.GetID()] = cardDictValue[T]{
 			index: len(o.list) + i,
 			card:  card,
 		}
@@ -173,7 +162,8 @@ func (o *orderedDeck) AddBottom(cards ...Card) {
 	o.list = append(o.list, cards...)
 }
 
-func (o *orderedDeck) Insert(cards ...Card) {
+// TODO: カードが重複している時にエラーを返すようにする
+func (o *orderedDeck[T]) Insert(cards ...T) {
 	o.list = append(o.list, cards...)
 	o.Shuffle()
 	return

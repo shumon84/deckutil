@@ -1,6 +1,7 @@
 package deckutil
 
 import (
+	"math/rand"
 	"reflect"
 	"testing"
 )
@@ -8,12 +9,12 @@ import (
 func Test_orderedDeck_Size(t *testing.T) {
 	tests := []struct {
 		name string
-		o    *orderedDeck
+		o    *orderedDeck[Card]
 		want int
 	}{
 		{
 			name: "simple test",
-			o:    NewOrderedDeck(makeMockCards(4), makeMockRand(0)).(*orderedDeck),
+			o:    NewOrderedDeck[Card](makeMockCards(4), makeMockRand(0)).(*orderedDeck[Card]),
 			want: 4,
 		},
 	}
@@ -29,15 +30,15 @@ func Test_orderedDeck_Size(t *testing.T) {
 func Test_orderedDeck_RevealAllWithoutShuffle(t *testing.T) {
 	tests := []struct {
 		name     string
-		o        *orderedDeck
+		o        *orderedDeck[Card]
 		want     []Card
-		wantDeck *orderedDeck
+		wantDeck *orderedDeck[Card]
 	}{
 		{
 			name:     "simple test",
-			o:        NewOrderedDeck(makeMockCards(4), makeMockRand(0)).(*orderedDeck),
+			o:        NewOrderedDeck[Card](makeMockCards(4), makeMockRand(0)).(*orderedDeck[Card]),
 			want:     makeMockCards(4),
-			wantDeck: NewOrderedDeck(makeMockCards(4), makeMockRand(0)).(*orderedDeck),
+			wantDeck: NewOrderedDeck[Card](makeMockCards(4), makeMockRand(0)).(*orderedDeck[Card]),
 		},
 	}
 	for _, tt := range tests {
@@ -54,15 +55,15 @@ func Test_orderedDeck_RevealAllWithoutShuffle(t *testing.T) {
 	}
 
 	t.Run("test for side effect", func(t *testing.T) {
-		o := NewOrderedDeck(makeMockCards(4), makeMockRand(0)).(*orderedDeck)
+		o := NewOrderedDeck[Card](makeMockCards(4), makeMockRand(0)).(*orderedDeck[Card])
 		want := makeMockCards(4)
 		got := o.RevealAllWithoutShuffle()
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("RevealAll() = %v, want %v", got, want)
 		}
+		wantCard := o.list[0]
 		got[0] = mockCard(100)
 		gotCard := o.list[0]
-		wantCard := mockCard(0)
 		if !reflect.DeepEqual(gotCard, wantCard) {
 			t.Errorf("RevealAll() = %v, want %v", gotCard, wantCard)
 		}
@@ -72,36 +73,36 @@ func Test_orderedDeck_RevealAllWithoutShuffle(t *testing.T) {
 func Test_orderedDeck_Shuffle(t *testing.T) {
 	tests := []struct {
 		name string
-		o    *orderedDeck
-		want *orderedDeck
+		o    *orderedDeck[Card]
+		want *orderedDeck[Card]
 	}{
 		{
 			name: "simple test",
-			o:    NewOrderedDeck(makeMockCards(4), makeMockRand(30, 20, 10, 0)).(*orderedDeck),
-			want: &orderedDeck{
-				dict: map[int]cardDictValue{
-					3: {
-						index: 0,
-						card:  mockCard(3),
-					},
+			o:    NewOrderedDeck[Card](makeMockCards(4), rand.NewSource(0)).(*orderedDeck[Card]),
+			want: &orderedDeck[Card]{
+				dict: map[int]cardDictValue[Card]{
 					2: {
-						index: 1,
+						index: 0,
 						card:  mockCard(2),
 					},
 					1: {
-						index: 2,
+						index: 1,
 						card:  mockCard(1),
 					},
 					0: {
-						index: 3,
+						index: 2,
 						card:  mockCard(0),
+					},
+					3: {
+						index: 3,
+						card:  mockCard(3),
 					},
 				},
 				list: []Card{
-					mockCard(3),
 					mockCard(2),
 					mockCard(1),
 					mockCard(0),
+					mockCard(3),
 				},
 			},
 		},
@@ -121,43 +122,43 @@ func Test_orderedDeck_Shuffle(t *testing.T) {
 func Test_orderedDeck_RevealAllWithShuffle(t *testing.T) {
 	tests := []struct {
 		name     string
-		o        *orderedDeck
+		o        *orderedDeck[Card]
 		wantOut  []Card
-		wantDeck *orderedDeck
+		wantDeck *orderedDeck[Card]
 	}{
 		{
 			name: "simple test",
-			o:    NewOrderedDeck(makeMockCards(4), makeMockRand(30, 20, 10, 0)).(*orderedDeck),
+			o:    NewOrderedDeck[Card](makeMockCards(4), rand.NewSource(0)).(*orderedDeck[Card]),
 			wantOut: []Card{
 				mockCard(0),
 				mockCard(1),
 				mockCard(2),
 				mockCard(3),
 			},
-			wantDeck: &orderedDeck{
-				dict: map[int]cardDictValue{
-					3: {
-						index: 0,
-						card:  mockCard(3),
-					},
+			wantDeck: &orderedDeck[Card]{
+				dict: map[int]cardDictValue[Card]{
 					2: {
-						index: 1,
+						index: 0,
 						card:  mockCard(2),
 					},
 					1: {
-						index: 2,
+						index: 1,
 						card:  mockCard(1),
 					},
 					0: {
-						index: 3,
+						index: 2,
 						card:  mockCard(0),
+					},
+					3: {
+						index: 3,
+						card:  mockCard(3),
 					},
 				},
 				list: []Card{
-					mockCard(3),
 					mockCard(2),
 					mockCard(1),
 					mockCard(0),
+					mockCard(3),
 				},
 			},
 		},
@@ -176,15 +177,15 @@ func Test_orderedDeck_RevealAllWithShuffle(t *testing.T) {
 	}
 
 	t.Run("test for side effect", func(t *testing.T) {
-		o := NewOrderedDeck(makeMockCards(4), makeMockRand(30, 20, 10, 0)).(*orderedDeck)
+		o := NewOrderedDeck[Card](makeMockCards(4), rand.NewSource(0)).(*orderedDeck[Card])
 		want := makeMockCards(4)
 		got := o.RevealAllWithShuffle()
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("RevealAllWithShuffle() = %v, want %v", got, want)
 		}
+		wantCard := o.list[0]
 		got[0] = mockCard(100)
 		gotCard := o.list[0]
-		wantCard := mockCard(3)
 		if !reflect.DeepEqual(gotCard, wantCard) {
 			t.Errorf("RevealAllWithShuffle() = %v, want %v", gotCard, wantCard)
 		}
@@ -194,53 +195,53 @@ func Test_orderedDeck_RevealAllWithShuffle(t *testing.T) {
 func Test_orderedDeck_DrawN(t *testing.T) {
 	tests := []struct {
 		name     string
-		o        *orderedDeck
+		o        *orderedDeck[Card]
 		arg      int
 		want     []Card
 		wantErr  bool
-		wantDeck *orderedDeck
+		wantDeck *orderedDeck[Card]
 	}{
 		{
 			name:    "test for draw one",
-			o:       NewOrderedDeck(makeMockCards(4), makeMockRand(0)).(*orderedDeck),
+			o:       NewOrderedDeck[Card](makeMockCards(4), makeMockRand(0)).(*orderedDeck[Card]),
 			arg:     1,
 			want:    []Card{mockCard(0)},
 			wantErr: false,
-			wantDeck: NewOrderedDeck([]Card{
+			wantDeck: NewOrderedDeck[Card]([]Card{
 				mockCard(1),
 				mockCard(2),
 				mockCard(3),
-			}, makeMockRand(0)).(*orderedDeck),
+			}, makeMockRand(0)).(*orderedDeck[Card]),
 		},
 		{
 			name: "test for draw two",
-			o:    NewOrderedDeck(makeMockCards(4), makeMockRand(0)).(*orderedDeck),
+			o:    NewOrderedDeck[Card](makeMockCards(4), makeMockRand(0)).(*orderedDeck[Card]),
 			arg:  2,
 			want: []Card{
 				mockCard(0),
 				mockCard(1),
 			},
 			wantErr: false,
-			wantDeck: NewOrderedDeck([]Card{
+			wantDeck: NewOrderedDeck[Card]([]Card{
 				mockCard(2),
 				mockCard(3),
-			}, makeMockRand(0)).(*orderedDeck),
+			}, makeMockRand(0)).(*orderedDeck[Card]),
 		},
 		{
 			name:     "test for empty deck",
-			o:        NewOrderedDeck([]Card{}, makeMockRand(0)).(*orderedDeck),
+			o:        NewOrderedDeck[Card]([]Card{}, makeMockRand(0)).(*orderedDeck[Card]),
 			arg:      1,
 			want:     []Card{},
 			wantErr:  true,
-			wantDeck: NewOrderedDeck([]Card{}, makeMockRand(0)).(*orderedDeck),
+			wantDeck: NewOrderedDeck[Card]([]Card{}, makeMockRand(0)).(*orderedDeck[Card]),
 		},
 		{
 			name:     "test for not enough deck",
-			o:        NewOrderedDeck(makeMockCards(2), makeMockRand(0)).(*orderedDeck),
+			o:        NewOrderedDeck[Card](makeMockCards(2), makeMockRand(0)).(*orderedDeck[Card]),
 			arg:      3,
 			want:     makeMockCards(2),
 			wantErr:  true,
-			wantDeck: NewOrderedDeck([]Card{}, makeMockRand(0)).(*orderedDeck),
+			wantDeck: NewOrderedDeck[Card]([]Card{}, makeMockRand(0)).(*orderedDeck[Card]),
 		},
 	}
 	for _, tt := range tests {
@@ -265,28 +266,28 @@ func Test_orderedDeck_DrawN(t *testing.T) {
 func Test_orderedDeck_Draw(t *testing.T) {
 	tests := []struct {
 		name     string
-		o        *orderedDeck
+		o        *orderedDeck[Card]
 		want     Card
 		wantErr  bool
-		wantDeck *orderedDeck
+		wantDeck *orderedDeck[Card]
 	}{
 		{
 			name:    "simple test",
-			o:       NewOrderedDeck(makeMockCards(4), makeMockRand(0)).(*orderedDeck),
+			o:       NewOrderedDeck[Card](makeMockCards(4), makeMockRand(0)).(*orderedDeck[Card]),
 			want:    mockCard(0),
 			wantErr: false,
-			wantDeck: NewOrderedDeck([]Card{
+			wantDeck: NewOrderedDeck[Card]([]Card{
 				mockCard(1),
 				mockCard(2),
 				mockCard(3),
-			}, makeMockRand(0)).(*orderedDeck),
+			}, makeMockRand(0)).(*orderedDeck[Card]),
 		},
 		{
 			name:     "test for empty deck",
-			o:        NewOrderedDeck([]Card{}, makeMockRand(0)).(*orderedDeck),
+			o:        NewOrderedDeck[Card]([]Card{}, makeMockRand(0)).(*orderedDeck[Card]),
 			want:     nil,
 			wantErr:  true,
-			wantDeck: NewOrderedDeck([]Card{}, makeMockRand(0)).(*orderedDeck),
+			wantDeck: NewOrderedDeck[Card]([]Card{}, makeMockRand(0)).(*orderedDeck[Card]),
 		},
 	}
 	for _, tt := range tests {
@@ -311,42 +312,42 @@ func Test_orderedDeck_Draw(t *testing.T) {
 func Test_orderedDeck_RevealTop(t *testing.T) {
 	tests := []struct {
 		name    string
-		o       *orderedDeck
+		o       *orderedDeck[Card]
 		arg     int
 		want    []Card
 		wantErr bool
 	}{
 		{
 			name:    "test for reveal one",
-			o:       NewOrderedDeck(makeMockCards(4), makeMockRand(0)).(*orderedDeck),
+			o:       NewOrderedDeck[Card](makeMockCards(4), makeMockRand(0)).(*orderedDeck[Card]),
 			arg:     1,
 			want:    makeMockCards(1),
 			wantErr: false,
 		},
 		{
 			name:    "test for reveal two",
-			o:       NewOrderedDeck(makeMockCards(4), makeMockRand(0)).(*orderedDeck),
+			o:       NewOrderedDeck[Card](makeMockCards(4), makeMockRand(0)).(*orderedDeck[Card]),
 			arg:     2,
 			want:    makeMockCards(2),
 			wantErr: false,
 		},
 		{
 			name:    "test for reveal all",
-			o:       NewOrderedDeck(makeMockCards(4), makeMockRand(0)).(*orderedDeck),
+			o:       NewOrderedDeck[Card](makeMockCards(4), makeMockRand(0)).(*orderedDeck[Card]),
 			arg:     4,
 			want:    makeMockCards(4),
 			wantErr: false,
 		},
 		{
 			name:    "test for empty deck",
-			o:       NewOrderedDeck([]Card{}, makeMockRand(0)).(*orderedDeck),
+			o:       NewOrderedDeck[Card]([]Card{}, makeMockRand(0)).(*orderedDeck[Card]),
 			arg:     1,
 			want:    []Card{},
 			wantErr: true,
 		},
 		{
 			name:    "test for not enough deck",
-			o:       NewOrderedDeck(makeMockCards(2), makeMockRand(0)).(*orderedDeck),
+			o:       NewOrderedDeck[Card](makeMockCards(2), makeMockRand(0)).(*orderedDeck[Card]),
 			arg:     3,
 			want:    makeMockCards(2),
 			wantErr: true,
@@ -366,7 +367,7 @@ func Test_orderedDeck_RevealTop(t *testing.T) {
 	}
 
 	t.Run("test for side effect", func(t *testing.T) {
-		o := NewOrderedDeck(makeMockCards(4), makeMockRand(0)).(*orderedDeck)
+		o := NewOrderedDeck[Card](makeMockCards(4), makeMockRand(0)).(*orderedDeck[Card])
 		want := makeMockCards(4)
 		got, err := o.RevealTop(4)
 		if err != nil {
@@ -375,9 +376,9 @@ func Test_orderedDeck_RevealTop(t *testing.T) {
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("RevealTop() = %v, want %v", got, want)
 		}
+		wantCard := o.list[0]
 		got[0] = mockCard(100)
 		gotCard := o.list[0]
-		wantCard := mockCard(0)
 		if !reflect.DeepEqual(gotCard, wantCard) {
 			t.Errorf("RevealTop() = %v, want %v", gotCard, wantCard)
 		}
@@ -387,39 +388,39 @@ func Test_orderedDeck_RevealTop(t *testing.T) {
 func Test_orderedDeck_Search(t *testing.T) {
 	tests := []struct {
 		name     string
-		o        *orderedDeck
+		o        *orderedDeck[Card]
 		arg      Card
 		want     Card
 		wantErr  bool
-		wantDeck *orderedDeck
+		wantDeck *orderedDeck[Card]
 	}{
 		{
 			name:    "simple test",
-			o:       NewOrderedDeck(makeMockCards(4), makeMockRand(0)).(*orderedDeck),
+			o:       NewOrderedDeck[Card](makeMockCards(4), makeMockRand(0)).(*orderedDeck[Card]),
 			arg:     mockCard(1),
 			want:    mockCard(1),
 			wantErr: false,
-			wantDeck: NewOrderedDeck([]Card{
+			wantDeck: NewOrderedDeck[Card]([]Card{
 				mockCard(0),
 				mockCard(2),
 				mockCard(3),
-			}, makeMockRand(0)).(*orderedDeck),
+			}, makeMockRand(0)).(*orderedDeck[Card]),
 		},
 		{
 			name:     "test for empty deck",
-			o:        NewOrderedDeck([]Card{}, makeMockRand(0)).(*orderedDeck),
+			o:        NewOrderedDeck[Card]([]Card{}, makeMockRand(0)).(*orderedDeck[Card]),
 			arg:      mockCard(0),
 			want:     nil,
 			wantErr:  true,
-			wantDeck: NewOrderedDeck([]Card{}, makeMockRand(0)).(*orderedDeck),
+			wantDeck: NewOrderedDeck[Card]([]Card{}, makeMockRand(0)).(*orderedDeck[Card]),
 		},
 		{
 			name:     "test for no exists card in the deck",
-			o:        NewOrderedDeck(makeMockCards(4), makeMockRand(0)).(*orderedDeck),
+			o:        NewOrderedDeck[Card](makeMockCards(4), makeMockRand(0)).(*orderedDeck[Card]),
 			arg:      mockCard(10),
 			want:     nil,
 			wantErr:  true,
-			wantDeck: NewOrderedDeck(makeMockCards(4), makeMockRand(0)).(*orderedDeck),
+			wantDeck: NewOrderedDeck[Card](makeMockCards(4), makeMockRand(0)).(*orderedDeck[Card]),
 		},
 	}
 	for _, tt := range tests {
@@ -444,31 +445,31 @@ func Test_orderedDeck_Search(t *testing.T) {
 func Test_orderedDeck_AddTop(t *testing.T) {
 	tests := []struct {
 		name     string
-		o        *orderedDeck
+		o        *orderedDeck[Card]
 		arg      []Card
-		wantDeck *orderedDeck
+		wantDeck *orderedDeck[Card]
 	}{
 		{
 			name: "simple test",
-			o:    NewOrderedDeck(makeMockCards(4), makeMockRand()).(*orderedDeck),
+			o:    NewOrderedDeck[Card](makeMockCards(4), makeMockRand()).(*orderedDeck[Card]),
 			arg: []Card{
 				mockCard(4),
 				mockCard(5),
 			},
-			wantDeck: NewOrderedDeck([]Card{
+			wantDeck: NewOrderedDeck[Card]([]Card{
 				mockCard(4),
 				mockCard(5),
 				mockCard(0),
 				mockCard(1),
 				mockCard(2),
 				mockCard(3),
-			}, makeMockRand()).(*orderedDeck),
+			}, makeMockRand()).(*orderedDeck[Card]),
 		},
 		{
 			name:     "test for empty deck",
-			o:        NewOrderedDeck([]Card{}, makeMockRand()).(*orderedDeck),
+			o:        NewOrderedDeck[Card]([]Card{}, makeMockRand()).(*orderedDeck[Card]),
 			arg:      makeMockCards(4),
-			wantDeck: NewOrderedDeck(makeMockCards(4), makeMockRand()).(*orderedDeck),
+			wantDeck: NewOrderedDeck[Card](makeMockCards(4), makeMockRand()).(*orderedDeck[Card]),
 		},
 	}
 	for _, tt := range tests {
@@ -481,36 +482,57 @@ func Test_orderedDeck_AddTop(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("test for input side effect", func(t *testing.T) {
+		o := NewOrderedDeck[Card]([]Card{mockCard(10)}, makeMockRand(0)).(*orderedDeck[Card])
+		testcase := make([]Card, 1, 2)
+		testcase[0] = mockCard(0)
+		want := []Card{
+			mockCard(0),
+			mockCard(10),
+		}
+		o.AddTop(testcase...)
+		got := o.list
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("AddTop() = %v, want %v", got, want)
+		}
+		wantCard := o.list[0]
+		testcase[0] = mockCard(100)
+		gotCard := o.list[0]
+		if !reflect.DeepEqual(gotCard, wantCard) {
+			t.Errorf("AddTop() = %v, want %v", gotCard, wantCard)
+		}
+	})
 }
 
 func Test_orderedDeck_AddBottom(t *testing.T) {
 	tests := []struct {
 		name     string
-		o        *orderedDeck
+		o        *orderedDeck[Card]
 		arg      []Card
-		wantDeck *orderedDeck
+		wantDeck *orderedDeck[Card]
 	}{
 		{
 			name: "simple test",
-			o:    NewOrderedDeck(makeMockCards(4), makeMockRand()).(*orderedDeck),
+			o:    NewOrderedDeck[Card](makeMockCards(4), makeMockRand()).(*orderedDeck[Card]),
 			arg: []Card{
 				mockCard(4),
 				mockCard(5),
 			},
-			wantDeck: NewOrderedDeck([]Card{
+			wantDeck: NewOrderedDeck[Card]([]Card{
 				mockCard(0),
 				mockCard(1),
 				mockCard(2),
 				mockCard(3),
 				mockCard(4),
 				mockCard(5),
-			}, makeMockRand()).(*orderedDeck),
+			}, makeMockRand()).(*orderedDeck[Card]),
 		},
 		{
 			name:     "test for empty deck",
-			o:        NewOrderedDeck([]Card{}, makeMockRand()).(*orderedDeck),
+			o:        NewOrderedDeck[Card]([]Card{}, makeMockRand()).(*orderedDeck[Card]),
 			arg:      makeMockCards(4),
-			wantDeck: NewOrderedDeck(makeMockCards(4), makeMockRand()).(*orderedDeck),
+			wantDeck: NewOrderedDeck[Card](makeMockCards(4), makeMockRand()).(*orderedDeck[Card]),
 		},
 	}
 	for _, tt := range tests {
@@ -523,41 +545,62 @@ func Test_orderedDeck_AddBottom(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("test for input side effect", func(t *testing.T) {
+		o := NewOrderedDeck[*mockCardStruct]([]*mockCardStruct{{0}}, makeMockRand(0)).(*orderedDeck[*mockCardStruct])
+		testcase := make([]*mockCardStruct, 1, 2)
+		testcase[0] = &mockCardStruct{10}
+		want := []*mockCardStruct{
+			{0},
+			{10},
+		}
+		o.AddBottom(testcase...)
+		got := o.list
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("AddBottom() = %v, want %v", got, want)
+		}
+		wantCard := o.list[1]
+		testcase[0].int = 100
+		gotCard := o.list[1]
+		if !reflect.DeepEqual(gotCard, wantCard) {
+			t.Errorf("AddBottom() = %v, want %v", gotCard, wantCard)
+		}
+	})
 }
 
 func Test_orderedDeck_Insert(t *testing.T) {
 	tests := []struct {
 		name     string
-		o        *orderedDeck
+		o        *orderedDeck[Card]
 		arg      []Card
-		wantDeck *orderedDeck
+		wantDeck *orderedDeck[Card]
 	}{
 		{
 			name: "simple test",
-			o:    NewOrderedDeck(makeMockCards(4), makeMockRand(0, 3, 1, 4, 2, 5)).(*orderedDeck),
+			o:    NewOrderedDeck[Card](makeMockCards(4), rand.NewSource(0)).(*orderedDeck[Card]),
 			arg: []Card{
 				mockCard(4),
 				mockCard(5),
 			},
-			wantDeck: NewOrderedDeck([]Card{
+			wantDeck: NewOrderedDeck[Card]([]Card{
+				mockCard(4),
+				mockCard(3),
 				mockCard(0),
 				mockCard(2),
-				mockCard(4),
 				mockCard(1),
-				mockCard(3),
 				mockCard(5),
-			}, makeMockRand()).(*orderedDeck),
+			}, makeMockRand()).(*orderedDeck[Card]),
 		},
 		{
 			name: "test for empty deck",
-			o:    NewOrderedDeck([]Card{}, makeMockRand(2, 1, 3, 0)).(*orderedDeck),
+			o:    NewOrderedDeck[Card]([]Card{}, rand.NewSource(0)).(*orderedDeck[Card]),
 			arg:  makeMockCards(4),
-			wantDeck: NewOrderedDeck([]Card{
-				mockCard(3),
+			wantDeck: NewOrderedDeck[Card]([]Card{
+				mockCard(2),
 				mockCard(1),
 				mockCard(0),
-				mockCard(2),
-			}, makeMockRand()).(*orderedDeck),
+				mockCard(3),
+			}, makeMockRand()).(*orderedDeck[Card]),
 		},
 	}
 	for _, tt := range tests {
@@ -570,4 +613,25 @@ func Test_orderedDeck_Insert(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("test for input side effect", func(t *testing.T) {
+		o := NewOrderedDeck[*mockCardStruct]([]*mockCardStruct{{0}}, rand.NewSource(0)).(*orderedDeck[*mockCardStruct])
+		testcase := make([]*mockCardStruct, 1, 2)
+		testcase[0] = &mockCardStruct{10}
+		want := []*mockCardStruct{
+			{0},
+			{10},
+		}
+		o.Insert(testcase...)
+		got := o.list
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("AddBottom() = %v, want %v", got, want)
+		}
+		wantCard := o.list[1]
+		testcase[0].int = 100
+		gotCard := o.list[1]
+		if !reflect.DeepEqual(gotCard, wantCard) {
+			t.Errorf("AddBottom() = %v, want %v", gotCard, wantCard)
+		}
+	})
 }

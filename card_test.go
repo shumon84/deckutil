@@ -7,6 +7,17 @@ import (
 )
 
 type mockCard int
+type mockCardStruct struct {
+	int
+}
+
+func (m *mockCardStruct) GetID() int {
+	return m.int
+}
+
+func (m *mockCardStruct) String() string {
+	return strconv.Itoa(m.int)
+}
 
 func makeMockCards(n int) []Card {
 	mock := make([]Card, n)
@@ -40,7 +51,7 @@ func makeMockRand(n ...int64) rand.Source {
 func (m *mockRandSource) Int63() int64 {
 	r := m.loop[m.index]
 	m.index = (m.index + 1) % len(m.loop)
-	return r
+	return r << 32
 }
 
 func (m *mockRandSource) Seed(seed int64) {
@@ -49,19 +60,16 @@ func (m *mockRandSource) Seed(seed int64) {
 
 func isSameCards(t *testing.T, arrA, arrB []Card) bool {
 	t.Helper()
-	type tuple struct {
-		A bool
-		B bool
-	}
-	ab := tuple{A: arrA == nil, B: arrB == nil}
-	switch ab {
-	case tuple{true, true}:
+
+	switch [2]bool{arrA == nil, arrB == nil} {
+	case [2]bool{true, true}:
 		return true
-	case tuple{true, false}:
+	case [2]bool{true, false}:
 		return false
-	case tuple{false, true}:
+	case [2]bool{false, true}:
 		return false
-	case tuple{false, false}:
+	case [2]bool{false, false}:
+		// not return
 	}
 
 	if len(arrA) != len(arrB) {
