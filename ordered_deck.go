@@ -15,7 +15,7 @@ type OrderedDeck[T Card] interface {
 	DrawN(n int) ([]T, error)
 	RevealTop(n int) ([]T, error)
 	Search(card T) (T, error)
-	AddTop(cards ...T)
+	AddTop(cards ...T) error
 	AddBottom(cards ...T)
 	Insert(cards ...T)
 }
@@ -138,8 +138,10 @@ func (o *orderedDeck[T]) Search(card T) (x T, _ error) {
 	return cardInfo.card, nil
 }
 
-// TODO: カードが重複している時にエラーを返すようにする
-func (o *orderedDeck[T]) AddTop(cards ...T) {
+func (o *orderedDeck[T]) AddTop(cards ...T) error {
+	if err := o.exists(cards...); err != nil {
+		return err
+	}
 	cardsCopy := make([]T, len(cards))
 	copy(cardsCopy, cards)
 	o.list = append(cardsCopy, o.list...)
@@ -149,6 +151,7 @@ func (o *orderedDeck[T]) AddTop(cards ...T) {
 			card:  card,
 		}
 	}
+	return nil
 }
 
 // TODO: カードが重複している時にエラーを返すようにする
@@ -167,4 +170,17 @@ func (o *orderedDeck[T]) Insert(cards ...T) {
 	o.list = append(o.list, cards...)
 	o.Shuffle()
 	return
+}
+
+func (o *orderedDeck[T]) exists(cards ...T) error {
+	duplicated := make([]Card, 0)
+	for _, card := range cards {
+		if _, ok := o.dict[card.GetID()]; ok {
+			duplicated = append(duplicated, card)
+		}
+	}
+	if len(duplicated) > 0 {
+		return NewErrDuplicateCards(duplicated...)
+	}
+	return nil
 }

@@ -19,7 +19,7 @@ func (e ErrNotFound) Error() string {
 	for _, card := range e.cards {
 		ids = append(ids, fmt.Sprintf("%03d", card.GetID()))
 	}
-	return "this card(ID=" + strings.Join(ids, ", ") + ") is not found"
+	return "these cards (ID=" + strings.Join(ids, ", ") + ") are not found."
 }
 
 type ErrNoMoreCards struct {
@@ -31,4 +31,22 @@ func NewErrNoMoreCards() error {
 
 func (e ErrNoMoreCards) Error() string {
 	return "no more cards"
+}
+
+type ErrDuplicateCards struct {
+	cards []Card
+}
+
+func NewErrDuplicateCards(cards ...Card) error {
+	return ErrDuplicateCards{
+		cards: cards,
+	}
+}
+
+func (e ErrDuplicateCards) Error() string {
+	ids := make([]string, 0, len(e.cards))
+	for _, card := range e.cards {
+		ids = append(ids, fmt.Sprintf("%03d", card.GetID()))
+	}
+	return "these cards (ID=" + strings.Join(ids, ", ") + ") are duplicated"
 }
