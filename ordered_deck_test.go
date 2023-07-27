@@ -601,6 +601,7 @@ func Test_orderedDeck_Insert(t *testing.T) {
 		name     string
 		o        *orderedDeck[Card]
 		arg      []Card
+		wantErr  bool
 		wantDeck *orderedDeck[Card]
 	}{
 		{
@@ -610,6 +611,7 @@ func Test_orderedDeck_Insert(t *testing.T) {
 				mockCard(4),
 				mockCard(5),
 			},
+			wantErr: false,
 			wantDeck: NewOrderedDeck[Card]([]Card{
 				mockCard(4),
 				mockCard(3),
@@ -620,9 +622,10 @@ func Test_orderedDeck_Insert(t *testing.T) {
 			}, makeMockRand()).(*orderedDeck[Card]),
 		},
 		{
-			name: "test for empty deck",
-			o:    NewOrderedDeck[Card]([]Card{}, rand.NewSource(0)).(*orderedDeck[Card]),
-			arg:  makeMockCards(4),
+			name:    "test for empty deck",
+			o:       NewOrderedDeck[Card]([]Card{}, rand.NewSource(0)).(*orderedDeck[Card]),
+			arg:     makeMockCards(4),
+			wantErr: false,
 			wantDeck: NewOrderedDeck[Card]([]Card{
 				mockCard(2),
 				mockCard(1),
@@ -630,10 +633,21 @@ func Test_orderedDeck_Insert(t *testing.T) {
 				mockCard(3),
 			}, makeMockRand()).(*orderedDeck[Card]),
 		},
+		{
+			name:     "test for duplicate card",
+			o:        NewOrderedDeck[Card](makeMockCards(4), rand.NewSource(0)).(*orderedDeck[Card]),
+			arg:      []Card{mockCard(0)},
+			wantErr:  true,
+			wantDeck: NewOrderedDeck[Card](makeMockCards(4), rand.NewSource(0)).(*orderedDeck[Card]),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.o.Insert(tt.arg...)
+			err := tt.o.Insert(tt.arg...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Insert() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
 			tt.o.random = tt.wantDeck.random
 			gotDeck := tt.o
 			if !reflect.DeepEqual(gotDeck, tt.wantDeck) {

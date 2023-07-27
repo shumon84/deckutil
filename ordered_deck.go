@@ -17,7 +17,7 @@ type OrderedDeck[T Card] interface {
 	Search(card T) (T, error)
 	AddTop(cards ...T) error
 	AddBottom(cards ...T) error
-	Insert(cards ...T)
+	Insert(cards ...T) error
 }
 
 type orderedDeck[T Card] struct {
@@ -169,11 +169,13 @@ func (o *orderedDeck[T]) AddBottom(cards ...T) error {
 	return nil
 }
 
-// TODO: カードが重複している時にエラーを返すようにする
-func (o *orderedDeck[T]) Insert(cards ...T) {
+func (o *orderedDeck[T]) Insert(cards ...T) error {
+	if err := o.exists(cards...); err != nil {
+		return err
+	}
 	o.list = append(o.list, cards...)
 	o.Shuffle()
-	return
+	return nil
 }
 
 func (o *orderedDeck[T]) exists(cards ...T) error {
